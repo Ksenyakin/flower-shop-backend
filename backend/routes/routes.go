@@ -31,5 +31,8 @@ func NewRouter() *mux.Router {
 	// Добавляем Middleware для авторизации
 	r.Use(middlewares.AuthMiddleware)
 
+	adminRoutes := r.PathPrefix("/api/admin").Subrouter()
+	adminRoutes.Use(middlewares.AdminMiddleware)
+	adminRoutes.HandleFunc("/products", handlers.AdminManageProducts).Methods("GET", "POST", "PUT", "DELETE")
 	return r
 }
