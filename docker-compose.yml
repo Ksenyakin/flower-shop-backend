@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345678
+      POSTGRES_DB: FlowersShopBD
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db_data:/var/lib/postgresql/data
+
+  backend:
+    image: golang:latest
+    volumes:
+      - ./backend:/app
+    working_dir: /app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+  frontend:
+    image: node:16
+    volumes:
+      - ./frontend:/app
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    command: ["npm", "start"]
