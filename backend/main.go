@@ -1,7 +1,7 @@
 package main
 
 import (
-	"backend/internal/db"
+	"flower-shop-backend/internal/db"
 	"github.com/joho/godotenv"
 	"log"
 )

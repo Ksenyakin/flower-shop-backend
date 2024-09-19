@@ -1,4 +1,4 @@
-module flowers-shop-backend
+module flower-shop-backend
 
 go 1.22.5
 
