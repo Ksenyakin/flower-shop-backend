@@ -1,35 +1,75 @@
 package utils
 
 import (
-	"errors"
 	"github.com/dgrijalva/jwt-go"
+	"os"
+	"time"
 )
 
-// Secret key for JWT
-var jwtSecret = []byte("your_secret_key")
+type Config struct {
+	Secret string
+}
 
-// ParseToken проверяет JWT токен и возвращает userID
-func ParseToken(tokenString string) (int, error) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// Подтверждаем, что алгоритм токена верный
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("unexpected signing method")
-		}
-		return jwtSecret, nil
+// Claims структура для хранения данных в JWT
+type Claims struct {
+	UserID int    `json:"user_id"`
+	Email  string `json:"email"`
+	jwt.StandardClaims
+}
+
+// CreateToken создает новый JWT
+func CreateToken(userID int, email string) (string, error) {
+	config := Config{
+		Secret: getEnv("JWT_SECRET", "0000"),
+	}
+	// Создание токена с данными пользователя и стандартными claims
+	claims := Claims{
+		UserID: userID,
+		Email:  email,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(), // Токен действует 24 часа
+			Issuer:    "flowers-shop",
+		},
+	}
+
+	// Создание нового токена с использованием алгоритма HMAC
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	// Подписывание токена
+	signedToken, err := token.SignedString([]byte(config.Secret))
+	if err != nil {
+		return "", err
+	}
+
+	return signedToken, nil
+}
+
+// ParseToken парсит и проверяет JWT
+func ParseToken(tokenString string) (*Claims, error) {
+
+	config := Config{
+		Secret: getEnv("JWT_SECRET", "0000"),
+	}
+
+	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(config.Secret), nil
 	})
-	if err != nil || !token.Valid {
-		return 0, errors.New("invalid token")
+
+	if err != nil {
+		return nil, err
 	}
 
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return 0, errors.New("invalid token claims")
+	claims, ok := token.Claims.(*Claims)
+	if !ok || !token.Valid {
+		return nil, err
 	}
 
-	userID, ok := claims["user_id"].(float64)
-	if !ok {
-		return 0, errors.New("invalid user_id claim")
-	}
+	return claims, nil
+}
 
-	return int(userID), nil
+func getEnv(key, defaultVal string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	return defaultVal
 }

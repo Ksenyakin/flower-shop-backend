@@ -1,24 +1,37 @@
 package main
 
 import (
-	"flower-shop-backend/routes" // Убедитесь, что путь правильный
-	"github.com/gorilla/handlers"
-	"log"
+	"flower-shop-backend/routes"
+	"flower-shop-backend/utils"
+	"github.com/sirupsen/logrus"
 	"net/http"
 )
 
 func main() {
-	r := routes.NewRouter()
+	// Инициализация базы данных
+	utils.InitDB()
 
-	// Настройка CORS
-	corsHandler := handlers.CORS(
-		handlers.AllowedOrigins([]string{"*"}), // Разрешить запросы с любого домена
-		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
-		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
-	)(r)
+	// Создание нового роутера
+	r := routes.SetupRoutes()
 
-	log.Println("Starting server on :8080")
-	if err := http.ListenAndServe(":8080", corsHandler); err != nil {
-		log.Fatalf("Error starting server: %v", err)
+	// Настройка маршрутов
+
+	// Добавляем Middleware для авторизации
+	// Middleware может быть применен глобально или на уровне определённых маршрутов
+	//r.Use(middlewares.AuthMiddleware)
+	// Для демонстрации используем глобальное применение (например, только для защищённых маршрутов)
+	//r.PathPrefix("/protected").Subrouter().Use(middlewares.AuthMiddleware)
+
+	// Настройка CORS (если необходимо)
+	// corsHandler := cors.New(cors.Options{
+	// 	AllowedOrigins: []string{"*"},
+	// 	AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"},
+	// 	AllowedHeaders: []string{"Content-Type", "Authorization"},
+	// }).Handler
+	// http.Handle("/", corsHandler(r))
+
+	logrus.Info("Starting server on :8080")
+	if err := http.ListenAndServe(":8080", r); err != nil {
+		logrus.Fatalf("Failed to start server: %v", err)
 	}
 }

@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func NewRouter() *mux.Router {
+func SetupRoutes() *mux.Router {
 	r := mux.NewRouter()
 
 	// Пользователи
@@ -29,7 +29,7 @@ func NewRouter() *mux.Router {
 	r.HandleFunc("/api/pay", handlers.ProcessPayment).Methods("POST")
 
 	// Добавляем Middleware для авторизации
-	r.Use(middlewares.AuthMiddleware)
+	//r.Use(middlewares.AuthMiddleware)
 
 	adminRoutes := r.PathPrefix("/api/admin").Subrouter()
 	adminRoutes.Use(middlewares.AdminMiddleware)
