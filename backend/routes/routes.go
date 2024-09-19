@@ -2,7 +2,7 @@ package routes
 
 import (
 	"flower-shop-backend/handlers"
-	middlewares "flower-shop-backend/middleware"
+	"flower-shop-backend/middleware"
 	"github.com/gorilla/mux"
 )
 
