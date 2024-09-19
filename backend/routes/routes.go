@@ -2,30 +2,34 @@ package routes
 
 import (
 	"flower-shop-backend/handlers"
+	middlewares "flower-shop-backend/middleware"
 	"github.com/gorilla/mux"
 )
 
-func SetupRouter() *mux.Router {
+func NewRouter() *mux.Router {
 	r := mux.NewRouter()
 
-	// User routes
+	// Пользователи
 	r.HandleFunc("/api/register", handlers.RegisterUser).Methods("POST")
 	r.HandleFunc("/api/login", handlers.LoginUser).Methods("POST")
 
-	// Product routes
+	// Товары
 	r.HandleFunc("/api/products", handlers.GetProducts).Methods("GET")
 
-	// Cart routes
-	r.HandleFunc("/api/cart", handlers.GetCart).Methods("GET")
+	// Корзина
+	r.HandleFunc("/api/cart/{user_id:[0-9]+}", handlers.GetCart).Methods("GET")
 	r.HandleFunc("/api/cart/add", handlers.AddToCart).Methods("POST")
-	r.HandleFunc("/api/cart/remove", handlers.RemoveFromCart).Methods("POST")
+	r.HandleFunc("/api/cart/remove/{cart_id:[0-9]+}/{product_id:[0-9]+}", handlers.RemoveFromCart).Methods("DELETE")
 
-	// Order routes
+	// Заказы
 	r.HandleFunc("/api/orders", handlers.CreateOrder).Methods("POST")
-	r.HandleFunc("/api/orders/{id:[0-9]+}", handlers.GetOrder).Methods("GET")
+	r.HandleFunc("/api/orders/{order_id:[0-9]+}", handlers.GetOrder).Methods("GET")
 
-	// Payment routes
+	// Платежи
 	r.HandleFunc("/api/pay", handlers.ProcessPayment).Methods("POST")
+
+	// Добавляем Middleware для авторизации
+	r.Use(middlewares.AuthMiddleware)
 
 	return r
 }

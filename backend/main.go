@@ -1,21 +1,21 @@
 package main
 
 import (
-	"flower-shop-backend/internal/db"
-	"github.com/joho/godotenv"
-	"log"
+	"flower-shop-backend/routes"
+	"flower-shop-backend/utils"
+	"github.com/sirupsen/logrus"
+	"net/http"
 )
 
 func main() {
-	// Загружаем переменные окружения из файла .env
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Ошибка загрузки .env файла")
-	}
-
 	// Инициализация базы данных
-	database := db.InitDB()
-	defer database.Close()
+	utils.InitDB()
 
-	// Остальной код сервера...
+	r := routes.NewRouter()
+
+	// Добавляем Middleware для авторизации
+	r.Use(AuthMiddleware)
+
+	logrus.Info("Starting server on :8080")
+	http.ListenAndServe(":8080", r)
 }
