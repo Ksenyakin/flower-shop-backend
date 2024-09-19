@@ -34,5 +34,8 @@ func NewRouter() *mux.Router {
 	adminRoutes := r.PathPrefix("/api/admin").Subrouter()
 	adminRoutes.Use(middlewares.AdminMiddleware)
 	adminRoutes.HandleFunc("/products", handlers.AdminManageProducts).Methods("GET", "POST", "PUT", "DELETE")
+
+	r.HandleFunc("/api/health", handlers.HealthCheckHandler).Methods("GET")
+
 	return r
 }
