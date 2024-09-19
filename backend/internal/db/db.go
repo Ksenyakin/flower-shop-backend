@@ -26,7 +26,7 @@ func InitDB() *sql.DB {
 	config := Config{
 		User:     getEnv("DB_USER", "postgres"),
 		Password: getEnv("DB_PASSWORD", "12345678"),
-		DBName:   getEnv("DB_NAME", "FlowersShopBD"),
+		DBName:   getEnv("DB_NAME", "goMs"),
 		Host:     getEnv("DB_HOST", "localhost"),
 		Port:     getEnv("DB_PORT", "5432"),
 		SSLMode:  getEnv("DB_SSLMODE", "disable"),
