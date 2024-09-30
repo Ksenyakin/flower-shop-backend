@@ -12,6 +12,7 @@ func SetupRoutes() *mux.Router {
 	// Пользователи
 	r.HandleFunc("/api/register", handlers.RegisterUser).Methods("POST")
 	r.HandleFunc("/api/login", handlers.LoginUser).Methods("POST")
+	r.HandleFunc("/api/userinfo", handlers.GetUserInfo).Methods("GET")
 
 	// Товары
 	r.HandleFunc("/api/products", handlers.GetProducts).Methods("GET")
@@ -34,8 +35,6 @@ func SetupRoutes() *mux.Router {
 	adminRoutes := r.PathPrefix("/api/admin").Subrouter()
 	adminRoutes.Use(middlewares.AdminMiddleware)
 	adminRoutes.HandleFunc("/products", handlers.AdminManageProducts).Methods("GET", "POST", "PUT", "DELETE")
-
-	r.HandleFunc("/api/health", handlers.HealthCheckHandler).Methods("GET")
 
 	return r
 }

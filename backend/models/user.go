@@ -5,8 +5,8 @@ import (
 	"errors"
 	"flower-shop-backend/utils"
 	_ "github.com/lib/pq"
-	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
+	"log"
 	"time"
 )
 
@@ -38,15 +38,34 @@ func GetUserByEmailAndPassword(email, password string) (*User, error) {
 		return nil, err
 	}
 
-	// Логируем хеш пароля и введенный пароль
-	logrus.Infof("Password hash from database: %s", user.PasswordHash)
-	logrus.Infof("Entered password: %s", password)
-
 	// Проверяем, совпадает ли введенный пароль с хэшем из базы данных
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
-		logrus.Warning("Password mismatch for email: ", email)
-		return nil, errors.New("invalid email or password")
-	}
+	IsEqualPasswords(password, user.PasswordHash)
 
 	return &user, nil
+}
+
+func GetUserByEmail(email string) (*User, error) {
+	// Подключение к базе данных (предполагается, что у вас есть глобальная переменная db)
+	var user User
+	query := "SELECT id, name, email, phone, address FROM users WHERE email = $1"
+	row := utils.DB.QueryRow(query, email)
+
+	err := row.Scan(&user.ID, &user.Name, &user.Email, &user.Phone, &user.Address)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // Пользователь не найден
+		}
+		log.Println("Error querying user:", err)
+		return nil, err // Ошибка при запросе
+	}
+
+	return &user, nil // Возвращаем найденного пользователя
+}
+
+func IsEqualPasswords(encryptedPassword string, expectedPassword string) error {
+	bytesEncryptedPassword := []byte(encryptedPassword)
+	bytesExpectedPassword := []byte(expectedPassword)
+	err := bcrypt.CompareHashAndPassword(bytesEncryptedPassword, bytesExpectedPassword)
+	return err
 }
