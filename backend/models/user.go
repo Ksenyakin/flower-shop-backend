@@ -18,6 +18,7 @@ type User struct {
 	Name         string    `json:"name"`
 	Phone        string    `json:"phone"`
 	Address      string    `json:"address"`
+	DayOfBithday string    `json:"birthday"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 }
@@ -47,10 +48,10 @@ func GetUserByEmailAndPassword(email, password string) (*User, error) {
 func GetUserByEmail(email string) (*User, error) {
 	// Подключение к базе данных (предполагается, что у вас есть глобальная переменная db)
 	var user User
-	query := "SELECT id, name, email, phone, address FROM users WHERE email = $1"
+	query := "SELECT id, name, email, phone, address, birthday FROM users WHERE email = $1"
 	row := utils.DB.QueryRow(query, email)
 
-	err := row.Scan(&user.ID, &user.Name, &user.Email, &user.Phone, &user.Address)
+	err := row.Scan(&user.ID, &user.Name, &user.Email, &user.Phone, &user.Address, &user.DayOfBithday)
 
 	if err != nil {
 		if err == sql.ErrNoRows {

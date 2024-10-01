@@ -16,6 +16,7 @@ func SetupRoutes() *mux.Router {
 
 	// Товары
 	r.HandleFunc("/api/products", handlers.GetProducts).Methods("GET")
+	r.HandleFunc("/api/addProduct", handlers.AddProduct).Methods("POST")
 
 	// Корзина
 	r.HandleFunc("/api/cart/{user_id:[0-9]+}", handlers.GetCart).Methods("GET")

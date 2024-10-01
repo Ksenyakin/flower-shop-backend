@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flower-shop-backend/models"
 	"flower-shop-backend/utils"
+	"log"
 	"net/http"
 )
 
@@ -27,4 +28,26 @@ func GetProducts(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(products)
+}
+
+func AddProduct(w http.ResponseWriter, r *http.Request) {
+	var product models.Product
+
+	// Декодируем тело запроса в структуру Product
+	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
+		log.Println("Ошибка декодирования JSON:", err)
+		http.Error(w, "Неверный формат данных", http.StatusBadRequest)
+		return
+	}
+
+	// Вызываем функцию модели для добавления товара в базу данных
+	if err := models.CreateProduct(&product); err != nil {
+		log.Println("Ошибка добавления товара:", err)
+		http.Error(w, "Не удалось добавить товар", http.StatusInternalServerError)
+		return
+	}
+
+	// Возвращаем успешный ответ
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(product)
 }
