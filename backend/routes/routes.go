@@ -16,7 +16,9 @@ func SetupRoutes() *mux.Router {
 
 	// Товары
 	r.HandleFunc("/api/products", handlers.GetProducts).Methods("GET")
+	r.HandleFunc("/api/products/{id}", handlers.GetProductByID).Methods("GET")
 	r.HandleFunc("/api/addProduct", handlers.AddProduct).Methods("POST")
+	r.HandleFunc("/api/products/{id}", handlers.DeleteProduct).Methods("DELETE")
 
 	// Корзина
 	r.HandleFunc("/api/cart/{user_id:[0-9]+}", handlers.GetCart).Methods("GET")
@@ -29,9 +31,6 @@ func SetupRoutes() *mux.Router {
 
 	// Платежи
 	r.HandleFunc("/api/pay", handlers.ProcessPayment).Methods("POST")
-
-	// Добавляем Middleware для авторизации
-	//r.Use(middlewares.AuthMiddleware)
 
 	adminRoutes := r.PathPrefix("/api/admin").Subrouter()
 	adminRoutes.Use(middlewares.AdminMiddleware)
