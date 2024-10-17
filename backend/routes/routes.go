@@ -20,6 +20,11 @@ func SetupRoutes() *mux.Router {
 	r.HandleFunc("/api/addProduct", handlers.AddProduct).Methods("POST")
 	r.HandleFunc("/api/products/{id}", handlers.DeleteProduct).Methods("DELETE")
 
+	// Категории Товаров
+	r.HandleFunc("/api/products/{product_id}/categories", handlers.GetCategoriesForProduct).Methods("GET")
+	r.HandleFunc("/api/products/{product_id}/categories/{category_id}", handlers.AddCategoryToProduct).Methods("POST")
+	r.HandleFunc("/api/products/{product_id}/categories/{category_id}", handlers.RemoveCategoryFromProduct).Methods("DELETE")
+
 	// Корзина
 	r.HandleFunc("/api/cart/{user_id:[0-9]+}", handlers.GetCart).Methods("GET")
 	r.HandleFunc("/api/cart/add", handlers.AddToCart).Methods("POST")
@@ -31,6 +36,7 @@ func SetupRoutes() *mux.Router {
 
 	// Платежи
 	r.HandleFunc("/api/pay", handlers.ProcessPayment).Methods("POST")
+	r.HandleFunc("/api/purchase/{id}", handlers.ProcessPurchaseHandler).Methods("POST")
 
 	adminRoutes := r.PathPrefix("/api/admin").Subrouter()
 	adminRoutes.Use(middlewares.AdminMiddleware)

@@ -145,3 +145,72 @@ func GetProductByID(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Не удалось закодировать ответ", http.StatusInternalServerError)
 	}
 }
+
+// AddCategoryToProduct добавляет категорию к товару
+func AddCategoryToProduct(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	productID, err := strconv.Atoi(vars["product_id"])
+	categoryID, err2 := strconv.Atoi(vars["category_id"])
+
+	if err != nil || err2 != nil {
+		logrus.WithError(err).Error("Неверный ID товара или категории")
+		http.Error(w, "Неверный ID товара или категории", http.StatusBadRequest)
+		return
+	}
+
+	// Добавляем категорию к товару
+	if err := models.AddProductCategory(productID, categoryID); err != nil {
+		logrus.WithError(err).Error("Ошибка при добавлении категории к товару")
+		http.Error(w, "Не удалось добавить категорию", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Категория добавлена к товару"})
+}
+
+// RemoveCategoryFromProduct удаляет категорию у товара
+func RemoveCategoryFromProduct(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	productID, err := strconv.Atoi(vars["product_id"])
+	categoryID, err2 := strconv.Atoi(vars["category_id"])
+
+	if err != nil || err2 != nil {
+		logrus.WithError(err).Error("Неверный ID товара или категории")
+		http.Error(w, "Неверный ID товара или категории", http.StatusBadRequest)
+		return
+	}
+
+	// Удаляем категорию у товара
+	if err := models.RemoveProductCategory(productID, categoryID); err != nil {
+		logrus.WithError(err).Error("Ошибка при удалении категории у товара")
+		http.Error(w, "Не удалось удалить категорию", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Категория удалена у товара"})
+}
+
+// GetCategoriesForProduct получает категории для товара
+func GetCategoriesForProduct(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	productID, err := strconv.Atoi(vars["product_id"])
+
+	if err != nil {
+		logrus.WithError(err).Error("Неверный ID товара")
+		http.Error(w, "Неверный ID товара", http.StatusBadRequest)
+		return
+	}
+
+	// Получаем категории для товара
+	categories, err := models.GetCategoriesForProduct(productID)
+	if err != nil {
+		logrus.WithError(err).Error("Ошибка при получении категорий для товара")
+		http.Error(w, "Не удалось получить категории", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(categories)
+}
