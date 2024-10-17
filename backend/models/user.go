@@ -246,46 +246,6 @@ func GetUserByID(userID int) (*User, error) {
 	return &user, nil // Возвращаем найденного пользователя
 }
 
-// Создание нового пользователя
-func CreateUser(user *User) error {
-	// Хешируем пароль
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-	if err != nil {
-		logrus.Error("Ошибка при хешировании пароля: ", err)
-		return err
-	}
-
-	// Устанавливаем начальные значения
-	user.PasswordHash = string(hashedPassword)
-	user.LoyaltyLevel = InitialLevel
-	user.TotalPurchases = 0
-	user.Points = 0
-
-	query := `
-		INSERT INTO users (
-			email, password_hash, name, phone, address, birthday,
-			total_purchases, points, loyalty_level, created_at, updated_at
-		) VALUES (
-			$1, $2, $3, $4, $5, $6,
-			$7, $8, $9, NOW(), NOW()
-		) RETURNING id
-	`
-
-	err = utils.DB.QueryRow(
-		query,
-		user.Email, user.PasswordHash, user.Name, user.Phone, user.Address,
-		user.DayOfBirthday, user.TotalPurchases, user.Points, user.LoyaltyLevel,
-	).Scan(&user.ID)
-
-	if err != nil {
-		logrus.Error("Ошибка при создании пользователя: ", err)
-		return err
-	}
-
-	logrus.Info("Пользователь успешно создан: ", user.Email)
-	return nil
-}
-
 // Проверка совпадения паролей
 func IsEqualPasswords(hashedPassword []byte, plainPassword string) error {
 	err := bcrypt.CompareHashAndPassword(hashedPassword, []byte(plainPassword))

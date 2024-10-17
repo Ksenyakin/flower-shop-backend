@@ -24,6 +24,13 @@ type JsonResponse struct {
 func GetUserInfo(w http.ResponseWriter, r *http.Request) {
 	logrus.Info("Получение информации о пользователе")
 
+	type Config struct {
+		Secret string
+	}
+	config := Config{
+		Secret: getEnv("JWT_SECRET", "0000"),
+	}
+
 	// Получаем токен из заголовка Authorization
 	tokenStr := r.Header.Get("Authorization")
 	if tokenStr == "" {
@@ -32,7 +39,7 @@ func GetUserInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Удаляем 'Bearer ' из токена, если он там есть
+	//Удаляем 'Bearer ' из токена, если он там есть
 	if len(tokenStr) > len("Bearer ") {
 		tokenStr = tokenStr[len("Bearer "):]
 	} else {
@@ -47,8 +54,11 @@ func GetUserInfo(w http.ResponseWriter, r *http.Request) {
 			logrus.Warn("Неподдерживаемый метод подписи токена")
 			return nil, nil
 		}
-		return []byte(getEnv("JWT_SECRET", "0000")), nil
+		return []byte(config.Secret), nil
 	})
+
+	println(tokenStr)
+	println("")
 
 	if err != nil || !token.Valid {
 		logrus.Warn("Неправильный токен: ", err)
@@ -83,11 +93,13 @@ func GetUserInfo(w http.ResponseWriter, r *http.Request) {
 
 	// Формируем ответ
 	response := map[string]interface{}{
-		"name":     user.Name,
-		"phone":    user.Phone,
-		"address":  user.Address,
-		"email":    user.Email,
-		"birthday": user.DayOfBirthday,
+		"name":          user.Name,
+		"phone":         user.Phone,
+		"address":       user.Address,
+		"email":         user.Email,
+		"birthday":      user.DayOfBirthday,
+		"loyalty_level": user.LoyaltyLevel,
+		"points":        user.Points,
 	}
 
 	logrus.Info("Информация о пользователе успешно получена")
