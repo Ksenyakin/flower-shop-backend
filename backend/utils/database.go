@@ -11,7 +11,7 @@ var DB *sql.DB
 // InitDB инициализирует соединение с базой данных
 func InitDB() error {
 	var err error
-	connStr := "user=postgres dbname=FlowersShopBD sslmode=disable password=12345678"
+	connStr := "user=postgres dbname=goMs sslmode=disable password=12345678"
 	DB, err = sql.Open("postgres", connStr)
 	if err != nil {
 		return fmt.Errorf("could not connect to database: %w", err)

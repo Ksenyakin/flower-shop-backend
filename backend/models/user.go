@@ -48,7 +48,7 @@ type User struct {
 	TotalPurchases   float64   `json:"total_purchases"`
 	Points           int       `json:"points"`
 	LoyaltyLevel     string    `json:"loyalty_level"`
-	LastPurchaseDate time.Time `json:"last_purchase_date"` // Новое поле
+	LastPurchaseDate time.Time `json:"last_purchase_date"`
 }
 
 // Получение индекса уровня

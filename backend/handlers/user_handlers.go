@@ -83,10 +83,11 @@ func GetUserInfo(w http.ResponseWriter, r *http.Request) {
 
 	// Формируем ответ
 	response := map[string]interface{}{
-		"name":    user.Name,
-		"phone":   user.Phone,
-		"address": user.Address,
-		"email":   user.Email,
+		"name":     user.Name,
+		"phone":    user.Phone,
+		"address":  user.Address,
+		"email":    user.Email,
+		"birthday": user.DayOfBirthday,
 	}
 
 	logrus.Info("Информация о пользователе успешно получена")
@@ -135,8 +136,8 @@ func RegisterUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Вставка нового пользователя в базу данных
-	_, err = utils.DB.Exec(`INSERT INTO users (email, password_hash, name, phone, address) VALUES ($1, $2, $3, $4, $5)`,
-		user.Email, hashedPassword, user.Name, user.Phone, user.Address)
+	_, err = utils.DB.Exec(`INSERT INTO users (email, password_hash, name, phone, address, birthday) VALUES ($1, $2, $3, $4, $5, $6)`,
+		user.Email, hashedPassword, user.Name, user.Phone, user.Address, user.DayOfBirthday)
 	if err != nil {
 		logrus.Error("Ошибка регистрации пользователя: ", err)
 		http.Error(w, `{"message": "Failed to register user"}`, http.StatusInternalServerError)
@@ -173,9 +174,6 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"message": "Invalid input"}`, http.StatusBadRequest)
 		return
 	}
-
-	logrus.Info("Попытка входаfffff для email: ", loginData.Email)
-	logrus.Info("Введенный пароль: ", loginData.Password)
 
 	// Поиск пользователя по email и паролю
 	user, err := models.GetUserByEmailAndPassword(loginData.Email, loginData.Password)
