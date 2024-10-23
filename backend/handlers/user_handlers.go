@@ -57,9 +57,6 @@ func GetUserInfo(w http.ResponseWriter, r *http.Request) {
 		return []byte(config.Secret), nil
 	})
 
-	println(tokenStr)
-	println("")
-
 	if err != nil || !token.Valid {
 		logrus.Warn("Неправильный токен: ", err)
 		http.Error(w, `{"message": "Invalid token"}`, http.StatusUnauthorized)

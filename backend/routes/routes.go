@@ -10,25 +10,28 @@ func SetupRoutes() *mux.Router {
 	r := mux.NewRouter()
 
 	// Пользователи
-	r.HandleFunc("/api/register", handlers.RegisterUser).Methods("POST")
-	r.HandleFunc("/api/login", handlers.LoginUser).Methods("POST")
-	r.HandleFunc("/api/userinfo", handlers.GetUserInfo).Methods("GET")
+	r.HandleFunc("/api/register", handlers.RegisterUser).Methods("POST") //
+	r.HandleFunc("/api/login", handlers.LoginUser).Methods("POST")       //
+	r.HandleFunc("/api/userinfo", handlers.GetUserInfo).Methods("GET")   //
 
 	// Товары
-	r.HandleFunc("/api/products", handlers.GetProducts).Methods("GET")
-	r.HandleFunc("/api/products/{id}", handlers.GetProductByID).Methods("GET")
-	r.HandleFunc("/api/addProduct", handlers.AddProduct).Methods("POST")
-	r.HandleFunc("/api/products/{id}", handlers.DeleteProduct).Methods("DELETE")
+	r.HandleFunc("/api/products", handlers.GetProducts).Methods("GET")           //
+	r.HandleFunc("/api/products/{id}", handlers.GetProductByID).Methods("GET")   //
+	r.HandleFunc("/api/addProduct", handlers.AddProduct).Methods("POST")         //
+	r.HandleFunc("/api/products/{id}", handlers.DeleteProduct).Methods("DELETE") //
 
 	// Категории Товаров
-	r.HandleFunc("/api/products/{product_id}/categories", handlers.GetCategoriesForProduct).Methods("GET")
-	r.HandleFunc("/api/products/{product_id}/categories/{category_id}", handlers.AddCategoryToProduct).Methods("POST")
-	r.HandleFunc("/api/products/{product_id}/categories/{category_id}", handlers.RemoveCategoryFromProduct).Methods("DELETE")
+	r.HandleFunc("/api/categories/create", handlers.CreateCategoryHandler).Methods("POST") //
+
+	r.HandleFunc("/api/products/{product_id}/categories", handlers.GetCategoriesForProduct).Methods("GET")             //
+	r.HandleFunc("/api/products/{product_id}/categories/{category_id}", handlers.AddCategoryToProduct).Methods("POST") //
+	r.HandleFunc("/api/products/{product_id}/categories", handlers.RemoveCategoryFromProduct).Methods("DELETE")        //
 
 	// Корзина
-	r.HandleFunc("/api/cart/{user_id:[0-9]+}", handlers.GetCart).Methods("GET")
-	r.HandleFunc("/api/cart/add", handlers.AddToCart).Methods("POST")
-	r.HandleFunc("/api/cart/remove/{cart_id:[0-9]+}/{product_id:[0-9]+}", handlers.RemoveFromCart).Methods("DELETE")
+	r.HandleFunc("/api/cart/{user_id:[0-9]+}/add", handlers.AddToCartHandler).Methods("POST") //
+	r.HandleFunc("/api/cart/remove/{cart_item_id:[0-9]+}", handlers.RemoveFromCartHandler).Methods("DELETE")
+	r.HandleFunc("/api/cart/update/{cart_item_id:[0-9]+}", handlers.UpdateCartItemHandler).Methods("POST")
+	r.HandleFunc("/api/cart/{user_id:[0-9]+}/view", handlers.ViewCartHandler).Methods("GET") //
 
 	// Заказы
 	r.HandleFunc("/api/orders", handlers.CreateOrder).Methods("POST")

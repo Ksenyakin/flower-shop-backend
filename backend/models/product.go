@@ -9,6 +9,7 @@ import (
 
 type Product struct {
 	ID          int       `json:"id"`
+	Category_id int       `json:"category_id"`
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	Price       float64   `json:"price"`
@@ -47,14 +48,17 @@ func DeleteProduct(productID int) error {
 // GetProductByID находит товар по его ID
 func GetProductByID(productID int) (*Product, error) {
 	var product Product
-	var imageURL sql.NullString // Для возможного NULL значения image_url
+	var categoryID sql.NullInt32 // Используем sql.NullInt32 для category_id
+	var imageURL sql.NullString  // Для возможного NULL значения image_url
 
-	query := "SELECT id, name, description, price, stock, image_url, created_at, updated_at FROM products WHERE id = $1"
+	// Обновляем запрос, чтобы включить category_id
+	query := "SELECT id, category_id, name, description, price, stock, image_url, created_at, updated_at FROM products WHERE id = $1"
 	row := utils.DB.QueryRow(query, productID)
 
 	// Сканируем строку результата запроса
 	err := row.Scan(
 		&product.ID,
+		&categoryID, // Используем sql.NullInt32 для поля, которое может быть NULL
 		&product.Name,
 		&product.Description,
 		&product.Price,
@@ -70,6 +74,13 @@ func GetProductByID(productID int) (*Product, error) {
 		}
 		log.Println("Ошибка при получении товара по ID:", err)
 		return nil, err
+	}
+
+	// Присваиваем значение category_id, если оно не NULL
+	if categoryID.Valid {
+		product.Category_id = int(categoryID.Int32) // Преобразуем к типу int
+	} else {
+		product.Category_id = 0 // Или любое другое значение по умолчанию
 	}
 
 	// Присваиваем значение image_url, если оно не NULL

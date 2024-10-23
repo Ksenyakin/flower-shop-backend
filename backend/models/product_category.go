@@ -11,10 +11,11 @@ type ProductCategory struct {
 	CategoryID int `json:"category_id"`
 }
 
-// AddProductCategory добавляет связь между товаром и категорией
+// AddProductCategory добавляет категорию к товару, обновляя поле category_id в таблице products
 func AddProductCategory(productID int, categoryID int) error {
-	query := "INSERT INTO product_categories (product_id, category_id) VALUES ($1, $2)"
-	_, err := utils.DB.Exec(query, productID, categoryID)
+	// Обновляем category_id у товара
+	query := "UPDATE products SET category_id = $1 WHERE id = $2"
+	_, err := utils.DB.Exec(query, categoryID, productID) // Исправлено: передаем categoryID, затем productID
 	if err != nil {
 		log.Println("Ошибка при добавлении категории к товару:", err)
 		return err
@@ -22,10 +23,11 @@ func AddProductCategory(productID int, categoryID int) error {
 	return nil
 }
 
-// RemoveProductCategory удаляет связь между товаром и категорией
-func RemoveProductCategory(productID int, categoryID int) error {
-	query := "DELETE FROM product_categories WHERE product_id = $1 AND category_id = $2"
-	_, err := utils.DB.Exec(query, productID, categoryID)
+// RemoveProductCategory удаляет категорию товара, устанавливая category_id в NULL
+func RemoveProductCategory(productID int) error {
+	// Устанавливаем category_id в NULL, чтобы "удалить" категорию товара
+	query := "UPDATE products SET category_id = NULL WHERE id = $1"
+	_, err := utils.DB.Exec(query, productID)
 	if err != nil {
 		log.Println("Ошибка при удалении категории товара:", err)
 		return err
@@ -33,28 +35,19 @@ func RemoveProductCategory(productID int, categoryID int) error {
 	return nil
 }
 
-// GetCategoriesForProduct получает категории, связанные с товаром
-func GetCategoriesForProduct(productID int) ([]Category, error) {
-	query := `SELECT c.id, c.name FROM categories c 
-              JOIN product_categories pc ON c.id = pc.category_id
-              WHERE pc.product_id = $1`
+// GetCategoryForProduct получает категорию, связанную с товаром
+func GetCategoryForProduct(productID int) (*Category, error) {
+	// Получаем категорию, связанную с товаром через поле category_id
+	query := `SELECT c.id, c.name, c.description FROM categories c
+              JOIN products p ON c.id = p.category_id
+              WHERE p.id = $1`
 
-	rows, err := utils.DB.Query(query, productID)
+	var category Category
+	err := utils.DB.QueryRow(query, productID).Scan(&category.ID, &category.Name, &category.Description)
 	if err != nil {
-		log.Println("Ошибка при получении категорий товара:", err)
+		log.Println("Ошибка при получении категории товара:", err)
 		return nil, err
 	}
-	defer rows.Close()
 
-	var categories []Category
-	for rows.Next() {
-		var category Category
-		if err := rows.Scan(&category.ID, &category.Name); err != nil {
-			log.Println("Ошибка при чтении данных о категории:", err)
-			return nil, err
-		}
-		categories = append(categories, category)
-	}
-
-	return categories, nil
+	return &category, nil
 }

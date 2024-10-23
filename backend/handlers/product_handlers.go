@@ -15,7 +15,7 @@ import (
 // GetProducts возвращает список продуктов
 func GetProducts(w http.ResponseWriter, r *http.Request) {
 	// Выполняем запрос к базе данных
-	rows, err := utils.DB.Query("SELECT id, name, description, price, stock, image_url, created_at, updated_at FROM products")
+	rows, err := utils.DB.Query("SELECT id,category_id, name, description, price, stock, image_url, created_at, updated_at FROM products")
 	if err != nil {
 		logrus.WithError(err).Error("Ошибка выполнения запроса к базе данных")
 		http.Error(w, "Failed to fetch products", http.StatusInternalServerError)
@@ -32,6 +32,7 @@ func GetProducts(w http.ResponseWriter, r *http.Request) {
 
 		if err := rows.Scan(
 			&product.ID,
+			&product.Category_id,
 			&product.Name,
 			&product.Description,
 			&product.Price,
@@ -173,16 +174,16 @@ func AddCategoryToProduct(w http.ResponseWriter, r *http.Request) {
 func RemoveCategoryFromProduct(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	productID, err := strconv.Atoi(vars["product_id"])
-	categoryID, err2 := strconv.Atoi(vars["category_id"])
-
-	if err != nil || err2 != nil {
+	//categoryID, err2 := strconv.Atoi(vars["category_id"])
+	//|| err2 != nil
+	if err != nil {
 		logrus.WithError(err).Error("Неверный ID товара или категории")
 		http.Error(w, "Неверный ID товара или категории", http.StatusBadRequest)
 		return
 	}
 
 	// Удаляем категорию у товара
-	if err := models.RemoveProductCategory(productID, categoryID); err != nil {
+	if err := models.RemoveProductCategory(productID); err != nil {
 		logrus.WithError(err).Error("Ошибка при удалении категории у товара")
 		http.Error(w, "Не удалось удалить категорию", http.StatusInternalServerError)
 		return
@@ -204,7 +205,7 @@ func GetCategoriesForProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Получаем категории для товара
-	categories, err := models.GetCategoriesForProduct(productID)
+	categories, err := models.GetCategoryForProduct(productID)
 	if err != nil {
 		logrus.WithError(err).Error("Ошибка при получении категорий для товара")
 		http.Error(w, "Не удалось получить категории", http.StatusInternalServerError)
