@@ -34,3 +34,36 @@ func CreateCategory(name string, description string) (int, error) {
 
 	return categoryID, nil
 }
+
+// DeleteCategory удаляет категорию по её ID
+func DeleteCategory(categoryID int) error {
+	// SQL-запрос для удаления категории
+	query := "DELETE FROM categories WHERE id = $1"
+
+	// Выполнение запроса
+	_, err := utils.DB.Exec(query, categoryID)
+	if err != nil {
+		log.Println("Ошибка при удалении категории:", err)
+		return err
+	}
+
+	return nil
+}
+
+// UpdateCategory обновляет данные категории по её ID
+func UpdateCategory(categoryID int, name string, description string) error {
+	// SQL-запрос для обновления категории
+	query := `
+		UPDATE categories
+		SET name = $1, description = $2, updated_at = NOW()
+		WHERE id = $3`
+
+	// Выполнение запроса
+	_, err := utils.DB.Exec(query, name, description, categoryID)
+	if err != nil {
+		log.Println("Ошибка при обновлении категории:", err)
+		return err
+	}
+
+	return nil
+}

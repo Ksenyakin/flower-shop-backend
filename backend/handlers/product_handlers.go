@@ -15,7 +15,7 @@ import (
 // GetProducts возвращает список продуктов
 func GetProducts(w http.ResponseWriter, r *http.Request) {
 	// Выполняем запрос к базе данных
-	rows, err := utils.DB.Query("SELECT id,category_id, name, description, price, stock, image_url, created_at, updated_at FROM products")
+	rows, err := utils.DB.Query("SELECT id, category_id, name, description, price, stock, image_url, created_at, updated_at FROM products")
 	if err != nil {
 		logrus.WithError(err).Error("Ошибка выполнения запроса к базе данных")
 		http.Error(w, "Failed to fetch products", http.StatusInternalServerError)
@@ -28,16 +28,17 @@ func GetProducts(w http.ResponseWriter, r *http.Request) {
 	// Проходим по строкам результата запроса
 	for rows.Next() {
 		var product models.Product
-		var imageURL sql.NullString // Для возможного NULL значения image_url
+		var categoryID sql.NullInt32 // Для возможного NULL значения category_id
+		var imageURL sql.NullString  // Для возможного NULL значения image_url
 
 		if err := rows.Scan(
 			&product.ID,
-			&product.Category_id,
+			&categoryID, // Используем sql.NullInt32 для category_id
 			&product.Name,
 			&product.Description,
 			&product.Price,
 			&product.Stock,
-			&imageURL, // Используем sql.NullString для поля, которое может быть NULL
+			&imageURL, // Используем sql.NullString для image_url
 			&product.CreatedAt,
 			&product.UpdatedAt); err != nil {
 			logrus.WithError(err).Error("Ошибка при чтении данных о продукте")
@@ -45,7 +46,14 @@ func GetProducts(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Присваиваем значение из sql.NullString к полю структуры
+		// Присваиваем значение category_id, если оно не NULL
+		if categoryID.Valid {
+			product.Category_id = int(categoryID.Int32) // Преобразуем к типу int
+		} else {
+			product.Category_id = 0 // Или любое другое значение по умолчанию
+		}
+
+		// Присваиваем значение image_url, если оно не NULL
 		if imageURL.Valid {
 			product.ImageURL = imageURL.String
 		} else {
@@ -114,6 +122,37 @@ func DeleteProduct(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Товар успешно удалён"))
 }
 
+func UpdateProduct(w http.ResponseWriter, r *http.Request) {
+	// Получаем ID товара из параметров маршрута
+	vars := mux.Vars(r)
+	productID, err := strconv.Atoi(vars["id"]) // Конвертируем строку в число
+	if err != nil {
+		log.Println("Неверный ID товара:", err)
+		http.Error(w, "Неверный ID товара", http.StatusBadRequest)
+		return
+	}
+
+	var product models.Product
+
+	// Декодируем тело запроса в структуру Product
+	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
+		log.Println("Ошибка декодирования JSON:", err)
+		http.Error(w, "Неверный формат данных", http.StatusBadRequest)
+		return
+	}
+
+	// Обновляем товар в базе данных
+	if err := models.UpdateProduct(productID, &product); err != nil {
+		log.Println("Ошибка обновления товара:", err)
+		http.Error(w, "Не удалось обновить товар", http.StatusInternalServerError)
+		return
+	}
+
+	// Возвращаем успешный ответ
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(product)
+}
+
 // GetProductByID обрабатывает запрос для получения товара по его ID
 func GetProductByID(w http.ResponseWriter, r *http.Request) {
 	// Получаем ID товара из URL
@@ -174,8 +213,7 @@ func AddCategoryToProduct(w http.ResponseWriter, r *http.Request) {
 func RemoveCategoryFromProduct(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	productID, err := strconv.Atoi(vars["product_id"])
-	//categoryID, err2 := strconv.Atoi(vars["category_id"])
-	//|| err2 != nil
+
 	if err != nil {
 		logrus.WithError(err).Error("Неверный ID товара или категории")
 		http.Error(w, "Неверный ID товара или категории", http.StatusBadRequest)

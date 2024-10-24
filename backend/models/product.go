@@ -45,6 +45,29 @@ func DeleteProduct(productID int) error {
 	return nil
 }
 
+func UpdateProduct(productID int, product *Product) error {
+	query := `
+		UPDATE products
+		SET category_id = $1, name = $2, description = $3, price = $4, stock = $5, image_url = $6, updated_at = NOW()
+		WHERE id = $7`
+
+	_, err := utils.DB.Exec(query,
+		product.Category_id,
+		product.Name,
+		product.Description,
+		product.Price,
+		product.Stock,
+		product.ImageURL,
+		productID)
+
+	if err != nil {
+		log.Println("Ошибка при обновлении товара:", err)
+		return err
+	}
+
+	return nil
+}
+
 // GetProductByID находит товар по его ID
 func GetProductByID(productID int) (*Product, error) {
 	var product Product

@@ -3,8 +3,10 @@ package handlers
 import (
 	"encoding/json"
 	"flower-shop-backend/models"
+	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 // Структура для запроса создания категории
@@ -39,4 +41,50 @@ func CreateCategoryHandler(w http.ResponseWriter, r *http.Request) {
 		"message": "Категория успешно создана",
 		"id":      categoryID,
 	})
+}
+func DeleteCategoryHandler(w http.ResponseWriter, r *http.Request) {
+	// Получаем ID категории из параметров маршрута
+	vars := mux.Vars(r)
+	categoryID, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		http.Error(w, "Invalid category ID", http.StatusBadRequest)
+		return
+	}
+
+	// Удаляем категорию
+	if err := models.DeleteCategory(categoryID); err != nil {
+		http.Error(w, "Failed to delete category", http.StatusInternalServerError)
+		return
+	}
+
+	// Возвращаем успешный ответ
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Категория успешно удалена"))
+}
+func UpdateCategoryHandler(w http.ResponseWriter, r *http.Request) {
+	// Получаем ID категории из параметров маршрута
+	vars := mux.Vars(r)
+	categoryID, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		http.Error(w, "Invalid category ID", http.StatusBadRequest)
+		return
+	}
+
+	var req models.Category
+
+	// Декодируем тело запроса
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid input", http.StatusBadRequest)
+		return
+	}
+
+	// Обновляем категорию
+	if err := models.UpdateCategory(categoryID, req.Name, req.Description); err != nil {
+		http.Error(w, "Failed to update category", http.StatusInternalServerError)
+		return
+	}
+
+	// Возвращаем успешный ответ
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Категория успешно обновлена"))
 }
